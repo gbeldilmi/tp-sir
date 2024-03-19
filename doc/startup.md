@@ -6,7 +6,7 @@
 ssh tc737978@mi104-17
 vboxmanage startvm "OL8-O19c" --type headless
 # vboxmanage controlvm "OL8-O19c" poweroff 
-ssh oracle@::1 -p 2222
+ssh oracle@127.0.0.1 -p 2222
 . scripts/setEnv.sh
 sqlplus /nolog
 connect / as sysdba
@@ -24,7 +24,7 @@ select * from user_tables;
 ssh gb232322@mi104-18
 vboxmanage startvm "OL8-O19c" --type headless
 # vboxmanage controlvm "OL8-O19c" poweroff
-ssh oracle@::1 -p 2222
+ssh oracle@127.0.0.1 -p 2222
 . scripts/setEnv.sh
 sqlplus /nolog
 connect / as sysdba
