@@ -9,8 +9,7 @@ create table if not exists GEOGRAPHIE_G (
   prefecture varchar2(255) not null
 );
 /* GEOGRAPHIE_T */
-create materialized view if not exists GEOGRAPHIE_T 
-  refresh fast on demand
+create view if not exists GEOGRAPHIE_T 
   as select * from GEOGRAPHIE_T@db_link;
 /* GEOGRAPHIE = GEOGRAPHIE_G union GEOGRAPHIE_T */
 create view if not exists GEOGRAPHIE as
@@ -54,8 +53,7 @@ create table if not exists PERSONNE2 (
 create view if not exists PERSONNE_G as
   select * from PERSONNE1 join PERSONNE2 on PERSONNE1.numP = PERSONNE2.numP;
 /* PERSONNE_T */
-create materialized view if not exists PERSONNE_T 
-  refresh fast on demand
+create view if not exists PERSONNE_T 
   as select * from PERSONNE_T@db_link;
 /* PERSONNE = PERSONNE_G union PERSONNE_T */
 create view if not exists PERSONNE as
@@ -77,12 +75,5 @@ create table if not exists MARIAGE_G (
   lieuMariage varchar2(255) not null,
   dateDivorce date optional
 ); -- */
-/* MARIAGE_T */
-create materialized view if not exists MARIAGE_T 
-  refresh fast on demand
-  as select * from MARIAGE_T@db_link;
-/* MARIAGE = MARIAGE_G union MARIAGE_T */
-create view if not exists MARIAGE as
-  select * from MARIAGE_G
-  union select * from MARIAGE_T;
-
+/* MARIAGE = synomym MARIAGE_G */
+create synonym if not exists MARIAGE for MARIAGE_G;
