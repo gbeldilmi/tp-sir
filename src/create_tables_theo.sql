@@ -38,20 +38,23 @@ create table if not exists PERSONNE1 (
   departementNaissance varchar2(255) not null,
   dateDeces date optional,
   departementDeces varchar2(255) optional
-); -- */
+); 
+
+
+-- */
 /* PERSONNE2 (
   numP,
   mere,
   pere
 ) */
 create table if not exists PERSONNE2 (
-  numP primary key,
-  mere, -- foreign key (numP) references PERSONNE1(numP),
-  pere -- foreign key (numP) references PERSONNE1(numP)
+  numP primary key foreign key references PERSONNE1(numP)
+  mere foreign key references PERSONNE1(numP) foreign key references PERSONNE2(numP),
+  pere foreign key (numP) references PERSONNE1(numP)
 ); -- */
 /* PERSONNE_T = PERSONNE1 join PERSONNE2 */
 create view if not exists PERSONNE_T as
-  select * from PERSONNE1 join PERSONNE2 on PERSONNE1.numP = PERSONNE2.numP;
+  select * from PERSONNE1 inner join PERSONNE2 on PERSONNE1.numP = PERSONNE2.numP;
 /* PERSONNE_G */
 create view if not exists PERSONNE_G 
   as select * from PERSONNE_G@db_link;
