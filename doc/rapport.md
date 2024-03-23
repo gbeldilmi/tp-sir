@@ -25,6 +25,21 @@ Afin de communiquer entre les machines de chaque site, nous avons mis en place u
 
 ## Partie 2 : Structure Oracle assurant la transparence à la fragmentation et la localisation des données
 
+Pour assurer la transparence à la fragmentation et la localisation des données, nous avons mis en place des vues sur chaque site. Ces vues permettent de masquer la fragmentation et la localisation des données. Ainsi, les utilisateurs peuvent faire des requêtes sur les vues sans se soucier de la fragmentation et de la localisation des données.
+
+Pour la vue `Personne`, nous avons créé une vue `Personne_T` sur le site 1 et une vue `Personne_G` sur le site 2. Ces vues sont définies de la manière suivante depuis le site 1 :
+
+```sql
+create view if not exists PERSONNE_T as
+select *
+from PERSONNE1
+join PERSONNE2 on PERSONNE1.numP = PERSONNE2.numP;
+
+create view if not exists PERSONNE as
+select * from PERSONNE_G@db_link
+union select * from PERSONNE_T;
+```
+
 ## Partie 3 : Gestion de clés primaires et étrangères
 
 ## Partie 4 : Mécanisme de réplication des données
