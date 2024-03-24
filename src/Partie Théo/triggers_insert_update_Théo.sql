@@ -3,7 +3,7 @@ INSTEAD OF INSERT ON personne
 FOR EACH ROW
 BEGIN
     IF :new.numDepartement MOD 2 = 0 THEN
-        -- Si le numéro de département est pair, effectuez la requête sur la base de données distante
+        -- Si le numéro de département est pair, on effectue la requête sur la base de données distante
         DELETE FROM personne1@db_link WHERE numP = :old.numP; -- Suppression de la personne de la base de données distante
         DELETE FROM personne1 WHERE numP = :old.numP; -- Suppression de la personne de la base de données locale
         INSERT INTO personne1@db_link VALUES (:new.numDepartement, :new.nom, :new.prenom, :new.dateNaissance, :new.lieuNaissance, :new.dateDeces, :new.lieuDeces);
@@ -19,11 +19,11 @@ INSTEAD OF UPDATE ON personne1
 FOR EACH ROW
 BEGIN
     IF :new.numDepartement MOD 2 = 0 THEN
-        -- Si le numéro de département est pair, effectuez la requête sur la base de données distante
+        -- Si le numéro de département est pair, on effectue la requête sur la base de données distante
         DELETE FROM personne1 WHERE numP = :old.numP; -- Suppression de la personne de la base de données locale
         UPDATE personne1@db_link SET numDepartement = :new.numDepartement, nom = :new.nom, prenom = :new.prenom, dateNaissance = :new.dateNaissance, lieuNaissance = :new.lieuNaissance, dateDeces = :new.dateDeces, lieuDeces = :new.lieuDeces WHERE numP = :old.numP;
     ELSE
-        -- Si le numéro de département est impair, effectuez la requête en local
+        -- Si le numéro de département est impair, on effectue la requête en local
         DELETE FROM personne1@db_link WHERE numP = :old.numP; -- Suppression de la personne de la base de données distante
         UPDATE personne1 SET numDepartement = :new.numDepartement, nom = :new.nom, prenom = :new.prenom, dateNaissance = :new.dateNaissance, lieuNaissance = :new.lieuNaissance, dateDeces = :new.dateDeces, lieuDeces = :new.lieuDeces WHERE numP = :old.numP;
     END IF;
@@ -34,10 +34,10 @@ INSTEAD OF DELETE ON personne1
 FOR EACH ROW
 BEGIN
     IF :old.numDepartement MOD 2 = 0 THEN
-        -- Si le numéro de département est pair, effectuez la requête sur la base de données distante
+        -- Si le numéro de département est pair, on effectue la requête sur la base de données distante
         DELETE FROM personne1@db_link WHERE numP = :old.numP; -- Suppression de la personne de la base de données distante
     ELSE
-        -- Si le numéro de département est impair, effectuez la requête en local
+        -- Si le numéro de département est impair, on effectue la requête en local
         DELETE FROM personne1 WHERE numP = :old.numP; -- Suppression de la personne de la base de données locale
     END IF;
 END;
@@ -146,3 +146,10 @@ BEGIN
     END IF;
 END;
 
+--on répercute les modifications de la table mariage sur la base distante
+create or replace trigger update_mariage
+before insert or update on mariage
+for each row
+begin 
+    insert into mariage@db_link values(:new.numP1, :new.numP2, :new.dateMariage, :new.lieuMariage, :new.dateDivorce, :new.lieuDivorce);
+end;

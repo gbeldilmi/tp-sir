@@ -75,17 +75,26 @@ begin
     END LOOP;
 end;
 
-
-/*-----------------------------------*/
-
-/*Vérifications des personnes*/
-/*-----------------------------------*/
-create or replace trigger check_departement_personne
-before insert or update on PERSONNE
+create or replace trigger check_meme_sexe
+before insert or update on MARIAGE
 for each row
 begin
-    SELECT departementNaissance INTO departementNaissance FROM PERSONNE WHERE numP = :new.numP;
-    SELECT departementDeces INTO departementDeces FROM PERSONNE WHERE numP = :new.numP;
+    SELECT sexe INTO sexeEpoux FROM PERSONNE WHERE numP = :new.epoux;
+    SELECT sexe INTO sexeEpouse FROM PERSONNE WHERE numP = :new.epouse;
+    IF sexeEpoux = sexeEpouse THEN
+        RAISE_APPLICATION_ERROR(-20000, 'Impossible de créer un mariage entre personnes du même sexe');
+    END IF;
+end;
+
+/*-----------------------------------*/
+/*Vérifications des personnes*/
+/*-----------------------------------*/
+create or replace trigger check_departement_personne1
+before insert or update on PERSONNE1
+for each row
+begin
+    SELECT departementNaissance INTO departementNaissance FROM PERSONNE1 WHERE numP = :new.numP;
+    SELECT departementDeces INTO departementDeces FROM PERSONNE1 WHERE numP = :new.numP;
     SELECT numDepartement INTO numDepartements FROM GEOGRAPHIE;
     IF departementNaissance NOT IN numDepartements OR departementDeces NOT IN numDepartements THEN
         RAISE_APPLICATION_ERROR(-20000, 'Impossible de créer une personne avec un département non existant');
@@ -93,47 +102,63 @@ begin
 end;
 
 create or replace trigger check_dates
-before insert or update on PERSONNE
+before insert or update on PERSONNE1
 for each row
 begin
-    SELECT dateNaissance INTO dateNaissance FROM PERSONNE WHERE numP = :new.numP;
-    SELECT dateDeces INTO dateDeces FROM PERSONNE WHERE numP = :new.numP;
+    SELECT dateNaissance INTO dateNaissance FROM PERSONNE1 WHERE numP = :new.numP;
+    SELECT dateDeces INTO dateDeces FROM PERSONNE1 WHERE numP = :new.numP;
     IF dateNaissance > dateDeces OR dateNaissance > SYSDATE OR dateDeces > SYSDATE THEN
         RAISE_APPLICATION_ERROR(-20000, 'Impossible de créer une personne avec une date de naissance ou de décès invalide');
     END IF;
 end;
 
 create or replace trigger check_parents 
-before insert or update on PERSONNE
+before insert or update on PERSONNE2
 for each row
 begin
-    SELECT pere INTO pere FROM PERSONNE WHERE numP = :new.numP;
-    SELECT mere INTO mere FROM PERSONNE WHERE numP = :new.numP;
-    SELECT numP INTO personnes FROM PERSONNE;
+    SELECT pere INTO pere FROM PERSONNE2 WHERE numP = :new.numP;
+    SELECT mere INTO mere FROM PERSONNE2 WHERE numP = :new.numP;
+    SELECT numP INTO personnes FROM PERSONNE2;
     IF pere NOT IN personnes OR mere NOT IN personnes OR pere = mere OR pere = :new.numP OR mere = :new.numP OR pere is null OR mere is null THEN
         RAISE_APPLICATION_ERROR(-20000, 'Impossible de créer une personne avec des parents invalides');
     END IF;
 end;
 
-create or replace trigger check_email
-before insert or update on PERSONNE
+create or replace trigger check_sexe_parents
+before insert or update on PERSONNE2
 for each row
 begin
-    SELECT email INTO email FROM PERSONNE WHERE numP = :new.numP;
+    SELECT pere INTO pere FROM PERSONNE2 WHERE numP = :new.numP;
+    SELECT mere INTO mere FROM PERSONNE2 WHERE numP = :new.numP;
+    SELECT sexe INTO sexePere FROM PERSONNE1 WHERE numP = pere;
+    SELECT sexe INTO sexeMere FROM PERSONNE1 WHERE numP = mere;
+    IF sexePere = 'F' OR sexeMere = 'F' THEN
+        RAISE_APPLICATION_ERROR(-20000, 'Impossible de créer une personne avec des parents de sexe invalide');
+    END IF;
+end;
+
+create or replace trigger check_email
+before insert or update on PERSONNE1
+for each row
+begin
+    SELECT email INTO email FROM PERSONNE1 WHERE numP = :new.numP;
     IF email NOT LIKE '%@%' THEN
         RAISE_APPLICATION_ERROR(-20000, 'Impossible de créer une personne avec un email invalide');
     END IF;
 end;
 
 create or replace trigger check_sexe
-before insert or update on PERSONNE
+before insert or update on PERSONNE1
 for each row
 begin
-    SELECT sexe INTO sexe FROM PERSONNE WHERE numP = :new.numP;
+    SELECT sexe INTO sexe FROM PERSONNE1 WHERE numP = :new.numP;
     IF sexe != 'M' OR sexe != 'F' THEN
         RAISE_APPLICATION_ERROR(-20000, 'Impossible de créer une personne avec un sexe invalide');
     END IF;
 end;
+
+
+
 /*-----------------------------------*/
 /*Vérifications de la géographie*/
 /*-----------------------------------*/
