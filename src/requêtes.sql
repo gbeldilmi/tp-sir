@@ -1,18 +1,11 @@
--- affichage de tous les mariages pour une personne donnée
-DECLARE
-    numCherche NUMBER;
-BEGIN
-    SELECT sexe INTO genre FROM personne WHERE numP = numCherche;
-    IF genre = 'M' THEN
-        SELECT mariage.dateMariage, mariage.lieuMariage, personne.nom as nomEpoux, personne.prenom as prenomEpoux, personne.nom as nomEpouse, personne.prenom as prenomEpouse
-        FROM mariage INNER JOIN personne ON mariage.epoux = personne.numP INNER JOIN personne ON mariage.epouse = personne.numP
-        WHERE mariage.epoux = numCherche;
-    ELSE
-        SELECT mariage.dateMariage, mariage.lieuMariage, personne.nom as nomEpoux, personne.prenom as prenomEpoux, personne.nom as nomEpouse, personne.prenom as prenomEpouse
-        FROM mariage INNER JOIN personne ON mariage.epoux = personne.numP INNER JOIN personne ON mariage.epouse = personne.numP
-        WHERE mariage.epouse = numCherche;
-    END IF;
-END;
+-- affichage de tous les mariages pour la personne 54, avec les noms des époux et épouses
+SELECT epoux.nom, epoux.prenom, epouse.nom, epouse.prenom, mariage.dateMariage, mariage.lieuMariage, mariage.dateDivorce
+FROM mariage
+INNER JOIN personne epoux ON mariage.epoux = epoux.numP
+INNER JOIN personne epouse ON mariage.epouse = epouse.numP
+WHERE epoux.numP = 54 OR epouse.numP = 54;
+ORDER BY mariage.dateMariage;
+
 
 -- affichage des départements classés par nombre de personnes nées
 SELECT numeroDepartement, COUNT(*) as nombrePersonnes
@@ -178,4 +171,3 @@ WHERE
     )
 GROUP BY p.numP
 ORDER BY nombreMariages DESC;
-
