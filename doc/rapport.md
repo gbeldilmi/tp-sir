@@ -68,8 +68,10 @@ Avec du recul notre choix de séparer les données selon, le département n'éta
 Nous avonc eu quelques problèmes en raison des difficultés d'accès aux machines donc nous n'avons pas pu effectuer certains tests. Nous pensons cependant que notre architecture est logique.
 
 ## Annexes
-**Annexe 1 : Création des utilisateurs et du database link**
-'''sql
+
+### Annexe 1 : Création des utilisateurs et du database link
+
+```sql
 create user theo identified by theo quota 10G on users;
 grant connect to theo;
 grant resource to theo;
@@ -83,10 +85,11 @@ grant resource to guillaume;
 grant create view, create synonym, create materialized view to guillaume;
 
 create public database link tp_sir connect to guillaume identified by guillaume using alias "guillaume";
-'''
+```
 
-**Annexe 2 : création des tables - côté Théo**
-'''sql
+### Annexe 2 : création des tables - côté Théo
+
+```sql
 /* GEOGRAPHIE (
   numDepartement,
   nom,
@@ -106,7 +109,6 @@ refresh on demand
 create view GEOGRAPHIE as
   select * from GEOGRAPHIE_T
   union select * from GEOGRAPHIE_G;
-
 
 /* PERSONNE1 (
   numP,
@@ -170,10 +172,11 @@ create table MARIAGE_T (
 ); -- */
 /* MARIAGE = synomym MARIAGE_T */
 create synonym MARIAGE for MARIAGE_T;
-'''
+```
 
-**Annexe 3 : création des tables - côté Guillaume**
-'''sql
+### Annexe 3 : création des tables - côté Guillaume
+
+```sql
 /* GEOGRAPHIE (
   numDepartement,
   nom,
@@ -193,7 +196,6 @@ refresh on demand
 create view GEOGRAPHIE as
   select * from GEOGRAPHIE_G
   union select * from GEOGRAPHIE_T;
-
 
 /* PERSONNE1 (
   numP,
@@ -239,7 +241,6 @@ create view PERSONNE as
   select * from PERSONNE_G
   union select * from PERSONNE_T;
 
-
 /* MARIAGE (
   epoux,
   epouse,
@@ -257,10 +258,11 @@ create table MARIAGE_G (
 ); -- */
 /* MARIAGE = synomym MARIAGE_G */
 create synonym MARIAGE for MARIAGE_G;
-'''
+```
 
-**Annexe 4 : triggers de distribution des données - côté Théo**
-'''sql
+### Annexe 4 : triggers de distribution des données - côté Théo
+
+```sql
 CREATE OR REPLACE TRIGGER check_site_insert_personne1
 INSTEAD OF INSERT ON personne
 FOR EACH ROW
@@ -416,10 +418,11 @@ for each row
 begin 
     insert into mariage@tp_sir values(:new.numP1, :new.numP2, :new.dateMariage, :new.lieuMariage, :new.dateDivorce, :new.lieuDivorce);
 end;
-'''
+```
 
-**Annexe 5 : triggers de distribution des données - côté Guillaume**
-'''sql
+### Annexe 5 : triggers de distribution des données - côté Guillaume
+
+```sql
 CREATE OR REPLACE TRIGGER check_site_insert_personne1
 INSTEAD OF INSERT ON personne
 FOR EACH ROW
@@ -555,10 +558,11 @@ for each row
 begin 
     insert into mariage@tp_sir values(:new.numP1, :new.numP2, :new.dateMariage, :new.lieuMariage, :new.dateDivorce, :new.lieuDivorce);
 end;
-'''
+```
 
-**Annexe 6 : triggers de vérification des données**
-'''sql
+### Annexe 6 : triggers de vérification des données
+
+```sql
 /*Vérifications des marriages*/
 /*-----------------------------------*/
 create or replace trigger check_deces
@@ -719,7 +723,6 @@ begin
 end;
 
 
-
 /*-----------------------------------*/
 /*Vérifications de la géographie*/
 /*-----------------------------------*/
@@ -731,12 +734,11 @@ begin
         RAISE_APPLICATION_ERROR(-20000, 'Impossible de créer un département avec un numéro invalide');
     END IF;
 end;
+```
 
+### Annexe 7 : remplissage des tables
 
-'''
-
-**Annexe 7 : remplissage des tables**
-'''sql
+```sql
 --Remplissage de Geographie--
 BEGIN
     INSERT INTO geographie VALUES (1, 'Ain', 'Bourg-en-Bresse');
@@ -926,10 +928,11 @@ BEGIN
         INSERT INTO mariage VALUES (i, epoux, epouse, dateMariage, lieuMariage);
     END LOOP;
 END;
-'''
+```
 
-**Annexe 8 : jeu de requêtes**
-'''sql
+### Annexe 8 : jeu de requêtes
+
+```sql
 -- affichage de tous les mariages pour la personne 54, avec les noms des époux et épouses
 SELECT epoux.nom, epoux.prenom, epouse.nom, epouse.prenom, mariage.dateMariage, mariage.lieuMariage, mariage.dateDivorce
 FROM mariage
@@ -1103,5 +1106,5 @@ WHERE
     )
 GROUP BY p.numP
 ORDER BY nombreMariages DESC;
-'''
+```
 
