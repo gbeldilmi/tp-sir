@@ -23,36 +23,37 @@ Nous avons fait le choix de répartir les informations en fonction des départem
 
 ## Partie 1 : Communication entre machines
 
-Afin de communiquer entre les machines de chaque site, nous avons mis en place un database link entre les deux bases de données. Cela nous permet de faire des requêtes sur les tables de l'autre site par la désignation du nom de la table distante suivie du nom du database link (ex : `SELECT * FROM table@dblink;`). Ici notre database link se nomme *tp_sir*.
+Afin de communiquer entre les machines de chaque site, nous avons mis en place un database link entre les deux bases de données. Cela nous permet de faire des requêtes sur les tables de l'autre site par la désignation du nom de la table distante suivie du nom du database link (ex : `SELECT * FROM table@dblink;`). Ici notre database link se nomme `tp_sir`.
 
 Ce dernier est utilisé dans deux situations :
-- pour la création de vues matérialisées (voir partie 3)
+- pour la création de vues (voir partie 3)
 - pour l'insertion, la mise à jour et la suppresion de données sur un site distant depuis le site local
 
 Les création des utilisateurs et des database link sont fournis en annexe 1.
 
 ## Partie 2 : Structure Oracle assurant la transparence à la fragmentation et la localisation des données
 
-Pour assurer la transparence à la fragmentation et la localisation des données, nous avons mis en place des vues sur chaque site. Ces vues permettent de masquer la fragmentation et la localisation des données. Ainsi, les utilisateurs peuvent faire des requêtes sur les vues comme s'il s'agissait de tables locales. La plupart de ces vues rassemblent les données locales et distantes. Nous utilisons des vues matérialisées, qui sont mises à jour à la demande à partir de la base distante.
+Pour assurer la transparence à la fragmentation et la localisation des données, nous avons mis en place des vues sur chaque site. Ces vues permettent de masquer la fragmentation et la localisation des données. Ainsi, les utilisateurs peuvent faire des requêtes sur les vues comme s'il s'agissait de tables locales. La plupart de ces vues rassemblent les données locales et distantes. Nous utilisons des vues, qui sont mises à jour à la demande à partir de la base distante.
 
-Pour la vue PERSONNE, nous avons créé une vue PERSONNE_T sur le site 1 et une vue PERSONNE_G sur le site 2. Ces vues sont contiutées des données de PERSONNE1 et PERSONNE2. On crée également sur chaque site une vue matérialisée correpondant à la vue PERSONNE_X de l'autre site (on crée donc PERSONNE_G sur le site 1 et Perosnne_T sur le site 2). Ces vues matérialisées serviront à la création de la vue PERSONNE sur chaque site. Cette vue répertorie donc toutes les informations des toutes les personnes sur les deux sites, et permet de faire simplement des requêtes.
+Pour la vue `PERSONNE`, nous avons créé une vue `PERSONNE_T` sur le site 1 et une vue `PERSONNE_G` sur le site 2. Ces vues sont constitutées des données de `PERSONNE1` et `PERSONNE2`. On crée également sur chaque site une vue matérialisée correpondant à la vue `PERSONNE_X` de l'autre site (on crée donc `PERSONNE_G` sur le site 1 et `PERSONNE_T` sur le site 2). Ces vues serviront à la création de la vue `PERSONNE` sur chaque site. Cette vue répertorie donc toutes les informations des toutes les personnes sur les deux sites, et permet de faire simplement des requêtes.
 
-Selon le même principe on crée la vue GEOGRAPHIE qui réunit les vues GEOGRAPHIE_T et GEOGRAPHIE_G, grâce encore une fois à des vues matérialisées.
+Selon le même principe on crée la vue `GEOGRAPHIE` qui réunit les vues `GEOGRAPHIE_T` et `GEOGRAPHIE_G`, grâce encore une fois à des vues.
 
-Comme dit dans l'introduction, nous avons choisi de séparer les données entre les départements pairs et impairs. Cela crée un genre de fragmentation horizontale sur PERSONNE1, PERSONNE2 et GEOGRAPHIE qui n'en est pas réelement une, puisque la table n'est pas déclarée comme fragmentée à la création. On s'assure de la bonne répartition des données grâce à des triggers qui avant toute insertion dans les tables PERSONNE1, PERSONNE2 ou GEOGRAPHIE vérifient le numéro du département afin de savoir si la requête doit être exécutée en local ou sur la base de données , distante.
+Comme dit dans l'introduction, nous avons choisi de séparer les données entre les départements pairs et impairs. Cela crée un genre de fragmentation horizontale sur `PERSONNE1`, `PERSONNE2` et `GEOGRAPHIE` qui n'en est pas réelement une, puisque la table n'est pas déclarée comme fragmentée à la création. On s'assure de la bonne répartition des données grâce à des triggers qui avant toute insertion dans les tables `PERSONNE1`, `PERSONNE2` ou `GEOGRAPHIE` vérifient le numéro du département afin de savoir si la requête doit être exécutée en local ou sur la base de données distante.
 
 La création des tables ainsi que des vues est fournie en annexes 2 et 3.
+
 La création des triggers de distribution des données est fournie en annexes 4 et 5.
 
 ## Partie 3 : Gestion de clés primaires et étrangères
 
-Grâce à notre vue globale PERSONNE, présente sur chaque site, la gestion des clés primaires et étrangères est grandement simplifiée pour ce qui est de la table MARIAGE. Les clés étrangères font directement référence aux champs de la vue.
+Grâce à notre vue globale `PERSONNE`, présente sur chaque site, la gestion des clés primaires et étrangères est grandement simplifiée pour ce qui est de la table `MARIAGE`. Les clés étrangères font directement référence aux champs de la vue.
 
-Personne1 et Personne2 ont cependant posé problème. D'après nos recherches il semble qu'Oracle ne fournisse aucun moyen de réaliser une fragmentation verticale. Nous avons donc créé deux tables séparées, et avons choisi de faire de PERSONNE1.numP une référence à PERSONNE2.numP et inversement.
+`PERSONNE1` et `PERSONNE2` ont cependant posé problème. D'après nos recherches il semble qu'Oracle ne fournisse aucun moyen de réaliser une fragmentation verticale. Nous avons donc créé deux tables séparées, et avons choisi de faire de `PERSONNE1.numP` une référence à `PERSONNE2.numP` et inversement.
 
 ## Partie 4 : Mécanisme de réplication des données
 
-Comme indiqué précedemment, nous avons choisi d'utiliser des vues matérialisées pour assurer la réplication des données. Ces vues sont asynchrones et se mettent donc à jour sur demande. Nous avons choisi ce mode de rafraichissement car il était le plus simple à mettre en oeuvre. Nous avions hésité à utiliser le FAST REFRESH, mais nous sommes ravisé après avoir fait de recherches. Cela semblait bien trop complexe.
+Comme indiqué précedemment, nous avons choisi d'utiliser des vues matérialisées pour assurer la réplication des données. Ces vues sont asynchrones et se mettent donc à jour sur demande. Nous avons choisi ce mode de rafraichissement car il était le plus simple à mettre en oeuvre. Nous avions hésité à utiliser le `FAST REFRESH`, mais nous sommes ravisé après avoir fait de recherches. Cela semblait bien trop complexe.
 
 Ces vues matérialisées sont au coeur de notre architecture : grâce à elles, et en les combinant avec les données locales, ont peu créer des vues globales qui rassemblent les données des deux sites et facilitent grandement les requêtes de sélection de données.
 
@@ -63,7 +64,8 @@ Nos requêtes couvrent un grand nombre possible d'utilisations de la base de don
 Notre jeu de requêtes est disponible en annexe 8.
 
 ## Conclusion
-Avec du recul notre choix de séparer les données selon, le département n'était peut-être pas le meilleur, mais nous ne nous en somme apperçu qu'assez tard et avons choisi de poursuivre dans cette voie pour ne pas perdre de temps. Une réparrtition plus efficace aurait pu être de séparer PERSONNE1 et PERSONNE2 sur un site chacun.
+
+Avec du recul notre choix de séparer les données selon, le département n'était peut-être pas le meilleur, mais nous ne nous en somme apperçu qu'assez tard et avons choisi de poursuivre dans cette voie pour ne pas perdre de temps. Une réparrtition plus efficace aurait pu être de séparer `PERSONNE1` et `PERSONNE2` sur un site chacun.
 
 Nous avonc eu quelques problèmes en raison des difficultés d'accès aux machines donc nous n'avons pas pu effectuer certains tests. Nous pensons cependant que notre architecture est logique.
 
